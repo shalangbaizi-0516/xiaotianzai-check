@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小天才自检码计算</title>
+  <style>
+    :root { color-scheme: light; --text:#2c2c2b; --muted:#7d7a75; --border:#e6e5e3; --surface:#f9f8f7; --blue:#2783de; --blue-soft:#e5f2fc; --red:#e56458; --red-soft:#fce9e7; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:#fff; color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif; }
+    main { width:min(100% - 32px, 760px); margin:0 auto; padding:56px 0 48px; }
+    .eyebrow { color:var(--blue); font-size:14px; font-weight:700; letter-spacing:.08em; margin-bottom:12px; }
+    h1 { margin:0; font-size:clamp(30px, 6vw, 44px); line-height:1.15; letter-spacing:-.03em; }
+    .intro { margin:14px 0 30px; max-width:650px; color:var(--muted); font-size:16px; line-height:1.65; }
+    .panel { border:1px solid var(--border); border-radius:12px; padding:24px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.03); }
+    .panel + .panel { margin-top:16px; }
+    label { display:block; font-size:16px; font-weight:700; margin-bottom:12px; }
+    .field-row { display:flex; gap:12px; align-items:stretch; }
+    input { flex:1; min-width:0; height:52px; border:1px solid #d6d4d1; border-radius:8px; padding:0 16px; color:var(--text); background:#fff; font:500 18px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.14em; outline:none; }
+    input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+    button { min-width:112px; min-height:52px; border:0; border-radius:8px; background:var(--blue); color:#fff; font-size:16px; font-weight:700; cursor:pointer; padding:0 18px; }
+    button:hover { filter:brightness(.96); } button:focus-visible { outline:3px solid var(--blue-soft); outline-offset:2px; }
+    .hint { margin:12px 0 0; color:var(--muted); font-size:14px; line-height:1.5; }
+    .result-panel { background:var(--surface); min-height:188px; display:flex; flex-direction:column; justify-content:center; }
+    .result-label { color:var(--muted); font-size:14px; font-weight:700; letter-spacing:.04em; }
+    .result { margin-top:12px; min-height:56px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px dashed #d6d4d1; background:#fff; color:var(--muted); font:700 clamp(28px, 8vw, 42px)/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.16em; padding:14px 16px; word-break:break-all; }
+    .result.success { color:var(--blue); border-style:solid; border-color:#b9dbf7; background:var(--blue-soft); }
+    .result.error { color:#a63d34; border-style:solid; border-color:#f1b9b2; background:var(--red-soft); font:600 15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif; letter-spacing:0; text-align:left; justify-content:flex-start; }
+    footer { margin-top:20px; color:#9b9893; font-size:13px; line-height:1.6; }
+    @media (max-width:560px) { main{padding-top:36px} .panel{padding:20px} .field-row{flex-direction:column} button{width:100%} }
+    @media (prefers-reduced-motion: no-preference) { button, input { transition:box-shadow .15s ease,border-color .15s ease,filter .15s ease; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">工具页面 · 非官方</div>
+    <h1>小天才自检码计算</h1>
+    <p class="intro">输入设备屏幕上显示的 8 位自检码，页面会根据指定算法生成计算结果。</p>
+
+    <section class="panel" aria-labelledby="input-title">
+      <label id="input-title" for="codeInput">请输入小天才屏幕上的自检码</label>
+      <div class="field-row">
+        <input id="codeInput" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="例如：12345670" aria-describedby="inputHint" />
+        <button id="calcButton" type="button">开始计算</button>
+      </div>
+      <p class="hint" id="inputHint">请输入恰好 8 位数字。此页面为个人分享工具，不代表官方服务。</p>
+    </section>
+
+    <section class="panel result-panel" aria-live="polite" aria-labelledby="result-title">
+      <div class="result-label" id="result-title">计算结果</div>
+      <div class="result" id="resultBox">等待输入</div>
+    </section>
+
+    <footer>算法逻辑根据你提供的 Python 代码改写为 JavaScript。结果中的随机步骤每次计算可能不同。</footer>
+  </main>
+
+  <script>
+    const input = document.getElementById('codeInput');
+    const button = document.getElementById('calcButton');
+    const resultBox = document.getElementById('resultBox');
+
+    function calculate(sjm) {
+      const e = 1;
+      let o = Number(sjm[7]) ^ e;
+      if (o > 7) o -= 8;
+      const n = (Number(sjm[o]) - o + 10) % 10;
+      let s = '';
+      for (let i = 0; i < 7; i++) {
+        if (i === o) s += String(n);
+        else s += String((Number(sjm[i]) + 10 - n) % 10);
+      }
+      const c = Math.floor(Math.random() * 7);
+      const a = Number(s[c]);
+      let r = '';
+      for (let i = 0; i < 7; i++) {
+        const jia = i === c ? c : a;
+        r += String((Number(s[i]) + jia) % 10);
+      }
+      return r;
+    }
+
+    function showError(message) {
+      resultBox.className = 'result error';
+      resultBox.textContent = message;
+    }
+
+    function run() {
+      const value = input.value.trim();
+      if (!/^\d{8}$/.test(value)) {
+        showError('请输入恰好 8 位数字后再计算。');
+        input.focus();
+        return;
+      }
+      resultBox.className = 'result success';
+      resultBox.textContent = calculate(value);
+    }
+
+    input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 8); });
+    input.addEventListener('keydown', (event) => { if (event.key === 'Enter') run(); });
+    button.addEventListener('click', run);
+  </script>
+</body>
+</html>
